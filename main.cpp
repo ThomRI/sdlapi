@@ -23,7 +23,7 @@ vec2 uy(0, 1);
 #define MIN_REACTION_TIME 10
 #define MAX_REACTION_TIME 50 // Maximum amount of frames before speeds are recalculated
 
-#define SIMULATION_STEPS 5000
+#define SIMULATION_STEPS 2000
 #define FPS 40 // 40 fps turn out to be 60 fps with fraps..
 
 void simulation_step(Particle *fluid_particles, int dt, int frame)
@@ -136,7 +136,11 @@ int main(int argc, char *argv[])
         }
 
         SDL_Delay(1); // For CPU and SDL events
-        free(simulation[n]);
+        //free(simulation[n]);
+        if(n == SIMULATION_STEPS - 1) {
+            cout << "Preview reset." << endl;
+            n = 0;
+        }
     }
     cout << "Done previewing." << endl;
 
