@@ -48,7 +48,7 @@ ostream& operator<<(ostream &out, const vec2 &vec)
 }
 
 typedef struct {
-    vec2 pos = vec2(0, 0), speed = vec2(0, 0), acc = vec2(0, 0);
+    vec2 pos = vec2(0, 0), speed = vec2(0, 0);//, acc = vec2(0, 0);
     int m = 0; // mass in arbitrary unit. 0 for an empty space.
     int reactionTime = 1;
 } Particle;

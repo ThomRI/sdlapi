@@ -20,8 +20,8 @@ vec2 uy(0, 1);
 
 #define SIZE 2 // fluid particle size
 #define FACTOR 5 // Speed unit
-#define MIN_REACTION_TIME 5
-#define MAX_REACTION_TIME 30 // Maximum amount of frames before speeds are recalculated
+#define MIN_REACTION_TIME 10
+#define MAX_REACTION_TIME 50 // Maximum amount of frames before speeds are recalculated
 
 #define SIMULATION_STEPS 5000
 #define FPS 60
@@ -37,8 +37,8 @@ void simulation_step(Particle *fluid_particles, int dt, int frame)
                 step_y = rand() % 2;
 
 
-            double  factor_x = rand() % (FACTOR * 20) / 20.0,
-                    factor_y = rand() % (FACTOR * 20) / 20.0;
+            double  factor_x = rand() % (FACTOR * 100) / 100.0, // To get a random double from 0 to FACTOR - 1 instead of an int
+                    factor_y = rand() % (FACTOR * 100) / 100.0;
 
             p->speed = vec2(factor_x * pow(-1, step_x), factor_y * pow(-1, step_y));
         }
@@ -75,12 +75,13 @@ int main(int argc, char *argv[])
     Application *app = new Application(WORLD, WORLD, "Brownian motion", FPS);
     app->init();
     app->pen()->setColor(255, 255, 255);
-    app->pen()->setBackgroundColor(100, 90, 90);
+    app->pen()->setBackgroundColor(70, 80, 80);
 
 
     Particle fluid_particles[N];
 
-    /* Random start positions for the fluid particles */
+    /* Random start position for the fluid particles */
+    /* AND random reaction time */
     srand(time(0));
     for(int i = 0;i < N;i++) {
         int x = rand() % WORLD;
@@ -103,6 +104,8 @@ int main(int argc, char *argv[])
         }
         simulation[i] = particles_array;
     }
+
+    // Initial fluid state
     for(int i = 0;i < N;i++) {
         simulation[0][i] = fluid_particles[i];
     }
