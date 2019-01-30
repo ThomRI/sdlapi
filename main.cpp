@@ -23,7 +23,7 @@ vec2 uy(0, 1);
 #define MIN_REACTION_TIME 5
 #define MAX_REACTION_TIME 30 // Maximum amount of frames before speeds are recalculated
 
-#define SIMULATION_STEPS 10000
+#define SIMULATION_STEPS 5000
 #define FPS 60
 
 void simulation_step(Particle *fluid_particles, int dt, int frame)
@@ -48,10 +48,22 @@ void simulation_step(Particle *fluid_particles, int dt, int frame)
 
         //cout << p->acc << " " << p->speed << " " << p->pos << endl << endl;
 
-        if(p->pos.x < 0)           p->pos.x = 0;
-        else if(p->pos.x >= WORLD) p->pos.x = WORLD - 1;
-        if(p->pos.y < 0)           p->pos.y = 0;
-        else if(p->pos.y >= WORLD) p->pos.y = WORLD - 1;
+        if(p->pos.x < 0) {
+            p->pos.x = 0;
+            p->speed.x = -1 * p->speed.x; // bounces off the border
+        }
+        else if(p->pos.x >= WORLD) {
+            p->pos.x = WORLD - 1;
+            p->speed.x = -1 * p->speed.x;
+        }
+        if(p->pos.y < 0) {
+            p->pos.y = 0;
+            p->speed.y = -1 * p->speed.y;
+        }
+        else if(p->pos.y >= WORLD) {
+            p->pos.y = WORLD - 1;
+            p->speed.y = -1 * p->speed.y;
+        }
     }
 }
 
@@ -63,7 +75,7 @@ int main(int argc, char *argv[])
     Application *app = new Application(WORLD, WORLD, "Brownian motion", FPS);
     app->init();
     app->pen()->setColor(255, 255, 255);
-    app->pen()->setBackgroundColor(0, 0, 0);
+    app->pen()->setBackgroundColor(100, 90, 90);
 
 
     Particle fluid_particles[N];
@@ -80,7 +92,7 @@ int main(int argc, char *argv[])
         app->pen()->drawSquare(x, y, SIZE, SIZE);
     }
 
-    cout << "Starting simulation of " << SIMULATION_STEPS << " steps." << endl;
+    cout << "Starting simulation of " << SIMULATION_STEPS << " steps for " << N << " fluid particules." << endl;
 
     Particle *simulation[SIMULATION_STEPS]; // Simulations
     for(int i = 0;i < SIMULATION_STEPS;i++) {
@@ -120,9 +132,10 @@ int main(int argc, char *argv[])
             return 0;
         }
 
-        SDL_Delay(3);
+        SDL_Delay(1); // For CPU and SDL events
         free(simulation[n]);
     }
+    cout << "Done previewing." << endl;
 
     return 0;
 }
