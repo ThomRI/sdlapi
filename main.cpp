@@ -24,7 +24,7 @@ vec2 uy(0, 1);
 #define MAX_REACTION_TIME 50 // Maximum amount of frames before speeds are recalculated
 
 #define SIMULATION_STEPS 5000
-#define FPS 60
+#define FPS 40 // 40 fps turn out to be 60 fps with fraps..
 
 void simulation_step(Particle *fluid_particles, int dt, int frame)
 {
