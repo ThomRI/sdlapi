@@ -23,6 +23,9 @@ vec2 uy(0, 1);
 #define MIN_REACTION_TIME 5
 #define MAX_REACTION_TIME 30 // Maximum amount of frames before speeds are recalculated
 
+#define SIMULATION_STEPS 10000
+#define FPS 60
+
 void simulation_step(Particle *fluid_particles, int dt, int frame)
 {
     /* Randomly update next fluid particle acc */
@@ -57,7 +60,7 @@ int main(int argc, char *argv[])
     cout << "Hello world!" << endl;
 
     /* Graphics */
-    Application *app = new Application(WORLD, WORLD, "Brownian motion", 60); // 60 fps
+    Application *app = new Application(WORLD, WORLD, "Brownian motion", FPS);
     app->init();
     app->pen()->setColor(255, 255, 255);
     app->pen()->setBackgroundColor(0, 0, 0);
@@ -77,25 +80,48 @@ int main(int argc, char *argv[])
         app->pen()->drawSquare(x, y, SIZE, SIZE);
     }
 
-    /*Particle *p = &fluid_particles[0];
-    p->speed = vec2(10, 10);
-    cout << p->pos << " " << p->speed << endl;
-    p->pos = integrate(p->pos, p->speed, 1);
-    cout << p->pos << " " << p->speed << endl;
-    return 0;*/
+    cout << "Starting simulation of " << SIMULATION_STEPS << " steps." << endl;
 
-    for(int n = 0;n < 10000;n++) {
-        simulation_step(fluid_particles, DT, n);
+    Particle *simulation[SIMULATION_STEPS]; // Simulations
+    for(int i = 0;i < SIMULATION_STEPS;i++) {
+        Particle *particles_array;
+        particles_array = (Particle*) malloc(N * sizeof(Particle));
+        if(particles_array == NULL) {
+            return 0;
+        }
+        simulation[i] = particles_array;
+    }
+    for(int i = 0;i < N;i++) {
+        simulation[0][i] = fluid_particles[i];
+    }
 
+    for(int n = 1;n < SIMULATION_STEPS;n++) {
+        if(n % 100 == 0) {
+            cout << "Simulation step : " << n << endl;
+        }
+
+        simulation_step(fluid_particles, DT, n); // One simulation step
+
+        for(int i = 0;i < N;i++) {
+            simulation[n][i] = fluid_particles[i]; // Copying results into the correct simulation
+        }
+    }
+
+    cout << "Simulation done." << endl << endl;
+    cout << "Starting simulation preview at " << FPS << " fps." << endl;
+    for(int n = 0;n < SIMULATION_STEPS;n++) {
         app->pen()->clear();
         for(int i = 0;i < N;i++) {
-            Particle *p = &fluid_particles[i];
+            Particle *p = &simulation[n][i];
             app->pen()->drawSquare(p->pos.x, p->pos.y, SIZE, SIZE);
         }
 
         if(!app->frame()) {
             return 0;
         }
+
+        SDL_Delay(3);
+        free(simulation[n]);
     }
 
     return 0;

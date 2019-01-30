@@ -52,7 +52,6 @@ bool Application::frame()
     m_fps_current = SDL_GetTicks();
     m_fps_delta = m_fps_current - m_fps_last;
     if(m_fps_delta < m_msPerFrame) {
-        //cout << m_fps_delta << endl;
         SDL_Delay(m_msPerFrame - m_fps_delta); // ms
     }
     m_fps_last = m_fps_current;
