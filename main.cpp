@@ -14,8 +14,17 @@ vec2 uy(0, 1);
 /* N particles of mass m */
 #define WORLD 480 // The world SIZE (grid is 0 to world-1)
 #define N 1000
- // fluid particles
-#define MASS 10
+#define C 3 // Number of colliding particles
+
+// Particles
+#define MASS_FLUID 1.0
+#define SIZE_FLUID 2
+
+#define MASS_COLLIDING 10.0
+#define SIZE_COLLIDING 10
+
+#define MASS_RATIO (MASS_COLLIDING / MASS_FLUID)
+
 #define DT 1
 
 #define SIZE 2 // fluid particle size
@@ -26,9 +35,35 @@ vec2 uy(0, 1);
 #define SIMULATION_STEPS 2000
 #define FPS 40 // 40 fps turn out to be 60 fps with fraps..
 
-void simulation_step(Particle *fluid_particles, int dt, int frame)
+/* Macros */
+#define IS_IN_SQUARE(x, y, targetx, targety, targetsize) ( (x-targetx) >= 0 && (x-targetx) <= targetsize ) && ( (y-targety >= 0 && y-targety <= targetsize) )
+#define WHITE 255, 255, 255
+#define RED 255, 0, 0
+#define BLUE 0, 0, 255
+
+inline void border_correction(Particle *p)
 {
-    /* Randomly update next fluid particle acc */
+    if(p->pos.x < 0) {
+        p->pos.x = 0;
+        p->speed.x = -1 * p->speed.x; // bounces off the border
+    }
+    else if(p->pos.x >= WORLD) {
+        p->pos.x = WORLD - 1;
+        p->speed.x = -1 * p->speed.x;
+    }
+    if(p->pos.y < 0) {
+        p->pos.y = 0;
+        p->speed.y = -1 * p->speed.y;
+    }
+    else if(p->pos.y >= WORLD) {
+        p->pos.y = WORLD - 1;
+        p->speed.y = -1 * p->speed.y;
+    }
+}
+
+void simulation_step(Particle *fluid_particles, Particle *colliding_particles, int dt, int frame)
+{
+    /* Updating fluid particles */
     for(int i = 0;i < N;i++) {
         Particle *p = &fluid_particles[i];
 
@@ -36,34 +71,56 @@ void simulation_step(Particle *fluid_particles, int dt, int frame)
             int step_x = rand() % 2, // random integer between 0 and 1
                 step_y = rand() % 2;
 
-
             double  factor_x = rand() % (FACTOR * 100) / 100.0, // To get a random double from 0 to FACTOR - 1 instead of an int
                     factor_y = rand() % (FACTOR * 100) / 100.0;
 
             p->speed = vec2(factor_x * pow(-1, step_x), factor_y * pow(-1, step_y));
         }
-
-        //p->speed = integrate(p->speed, p->acc, dt);
         p->pos = integrate(p->pos, p->speed, dt);
 
-        //cout << p->acc << " " << p->speed << " " << p->pos << endl << endl;
+        // Border correction
+        border_correction(p);
 
-        if(p->pos.x < 0) {
-            p->pos.x = 0;
-            p->speed.x = -1 * p->speed.x; // bounces off the border
+        // After position correction
+        for(int j = 0; j < C;j++) {
+            Particle *c = &colliding_particles[j];
+            bool isinsq = IS_IN_SQUARE(p->pos.x, p->pos.y, c->pos.x, c->pos.y, SIZE_COLLIDING);
+            if(isinsq && !p->collided) {
+                c->next_colliding_particles.push_back(&fluid_particles[i]); // Adding [i]-th particle to the ones colliding with [j]
+                p->collided = true;
+            } else if(p->collided && !isinsq) {
+                p->collided = false;
+            }
         }
-        else if(p->pos.x >= WORLD) {
-            p->pos.x = WORLD - 1;
-            p->speed.x = -1 * p->speed.x;
+    }
+
+    /* Updating colliding particles */
+    for(int j = 0;j < C;j++) {
+        Particle *c = &colliding_particles[j];
+        /* We already detected which fluid particles are going to collide with c from here */
+
+        /* Updating c speed if necessary */
+        if(c->next_colliding_particles.size() > 0) {
+            vec2 *speeds; // Speeds of the next colliding particles
+            speeds = (vec2*) malloc(sizeof(vec2) * c->next_colliding_particles.size());
+            for(int i = 0;i < c->next_colliding_particles.size();i++) {
+                speeds[i] = c->next_colliding_particles.at(i)->speed;
+            }
+
+            // equivalent speed as if there was only one particle colliding with c
+            vec2 equivalent_colliding_speed = average(speeds, c->next_colliding_particles.size());
+            c->speed = (equivalent_colliding_speed*2.0 + c->speed * (MASS_RATIO - 1)) / (MASS_RATIO + 1);
         }
-        if(p->pos.y < 0) {
-            p->pos.y = 0;
-            p->speed.y = -1 * p->speed.y;
-        }
-        else if(p->pos.y >= WORLD) {
-            p->pos.y = WORLD - 1;
-            p->speed.y = -1 * p->speed.y;
-        }
+        //cout << c->speed << endl;
+
+        /* Integrating position */
+        c->pos = integrate(c->pos, c->speed, dt);
+
+        /* Border correction */
+        border_correction(c);
+
+        /* Collision were calculated, we can clear the collision queue */
+        c->next_colliding_particles.clear();
     }
 }
 
@@ -74,14 +131,14 @@ int main(int argc, char *argv[])
     /* Graphics */
     Application *app = new Application(WORLD, WORLD, "Brownian motion", FPS);
     app->init();
-    app->pen()->setColor(255, 255, 255);
+    app->pen()->setColor(WHITE);
     app->pen()->setBackgroundColor(70, 80, 80);
 
 
     Particle fluid_particles[N];
+    Particle col_particles[C];
 
-    /* Random start position for the fluid particles */
-    /* AND random reaction time */
+    /* Initialising fluid particles */
     srand(time(0));
     for(int i = 0;i < N;i++) {
         int x = rand() % WORLD;
@@ -90,24 +147,46 @@ int main(int argc, char *argv[])
         fluid_particles[i].pos = vec2(x, y);
         fluid_particles[i].reactionTime = reaction_time;
 
-        app->pen()->drawSquare(x, y, SIZE, SIZE);
+        app->pen()->drawSquare(x, y, SIZE_FLUID, SIZE_FLUID);
     }
 
-    cout << "Starting simulation of " << SIMULATION_STEPS << " steps for " << N << " fluid particules." << endl;
+    /* Initialising colliding particles */
+    for(int j = 0;j < C;j++) {
+        int x = rand() % WORLD;
+        int y = rand() % WORLD;
+        col_particles[j].pos = vec2(x, y);
 
-    Particle *simulation[SIMULATION_STEPS]; // Simulations
+        app->pen()->setColor(RED);
+        app->pen()->drawSquare(x, y, SIZE_COLLIDING, SIZE_COLLIDING);
+
+        cout << "Created colliding particle at " << col_particles[j].pos << endl;
+    }
+
+    cout << "Starting simulation of " << SIMULATION_STEPS << " steps for " << N << " fluid particules and " << C << " colliding particles." << endl;
+
+    Particle *simulation_fluid[SIMULATION_STEPS]; // Simulations
+    Particle *simulation_colliding[SIMULATION_STEPS];
     for(int i = 0;i < SIMULATION_STEPS;i++) {
-        Particle *particles_array;
-        particles_array = (Particle*) malloc(N * sizeof(Particle));
-        if(particles_array == NULL) {
-            return 0;
+        Particle *fluid_particles_array;
+        Particle *colliding_particles_array;
+
+        fluid_particles_array = (Particle*) malloc(N * sizeof(Particle));
+        colliding_particles_array = (Particle*) malloc(C * sizeof(Particle));
+        if(fluid_particles_array == NULL || colliding_particles_array == NULL) {
+            return -1;
         }
-        simulation[i] = particles_array;
+        simulation_fluid[i] = fluid_particles_array;
+        simulation_colliding[i] = colliding_particles_array;
     }
 
     // Initial fluid state
     for(int i = 0;i < N;i++) {
-        simulation[0][i] = fluid_particles[i];
+        simulation_fluid[0][i] = fluid_particles[i];
+    }
+
+    // Initial colliding particles state
+    for(int j = 0;j < C;j++) {
+        simulation_colliding[0][j] = col_particles[j];
     }
 
     for(int n = 1;n < SIMULATION_STEPS;n++) {
@@ -115,21 +194,49 @@ int main(int argc, char *argv[])
             cout << "Simulation step : " << n << endl;
         }
 
-        simulation_step(fluid_particles, DT, n); // One simulation step
+        simulation_step(fluid_particles, col_particles, DT, n); // One simulation step
 
         for(int i = 0;i < N;i++) {
-            simulation[n][i] = fluid_particles[i]; // Copying results into the correct simulation
+            simulation_fluid[n][i] = fluid_particles[i]; // Copying results into the correct simulation
         }
+
+        for(int j = 0;j < C;j++) { // same for colliding particles
+            simulation_colliding[n][j] = col_particles[j];
+        }
+    }
+
+
+    vector<SDL_Point>* path_tracer_colliding[C]; // Stores pixels that have been visited by colliding particles at element [i] (array of (*vector))
+    for(int z = 0;z < C;z++) {
+        path_tracer_colliding[z] = new vector<SDL_Point>;
     }
 
     cout << "Simulation done." << endl << endl;
     cout << "Starting simulation preview at " << FPS << " fps." << endl;
     for(int n = 0;n < SIMULATION_STEPS;n++) {
         app->pen()->clear();
+
+        // Drawing fluid particles
+        app->pen()->setColor(WHITE);
         for(int i = 0;i < N;i++) {
-            Particle *p = &simulation[n][i];
-            app->pen()->drawSquare(p->pos.x, p->pos.y, SIZE, SIZE);
+            Particle *p = &simulation_fluid[n][i];
+            app->pen()->drawSquare(p->pos.x, p->pos.y, SIZE_FLUID, SIZE_FLUID);
         }
+
+        // Drawing colliding particles
+        app->pen()->setColor(RED);
+        for(int j = 0;j < C;j++) {
+            Particle *c = &simulation_colliding[n][j];
+            path_tracer_colliding[j]->push_back({c->pos.x + SIZE_COLLIDING / 2, c->pos.y + SIZE_COLLIDING / 2}); // Path centered
+            app->pen()->drawSquare(c->pos.x, c->pos.y, SIZE_COLLIDING, SIZE_COLLIDING);
+        }
+
+        // Drawing colliding particles path
+        app->pen()->setColor(BLUE);
+        for(int z = 0;z < C;z++) {
+            app->pen()->drawLines(*path_tracer_colliding[z]);
+        }
+
 
         if(!app->frame()) {
             return 0;
@@ -139,6 +246,9 @@ int main(int argc, char *argv[])
         //free(simulation[n]);
         if(n == SIMULATION_STEPS - 1) {
             cout << "Preview reset." << endl;
+            for(int z = 0;z < C;z++) {
+                path_tracer_colliding[z]->clear();
+            }
             n = 0;
         }
     }

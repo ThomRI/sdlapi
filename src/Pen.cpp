@@ -38,6 +38,25 @@ void Pen::drawSquare(int x, int y, int w, int h)
     drawSquare(r);
 }
 
+void Pen::drawLines(vector<vec2> &points)
+{
+    if(points.size() == 0) return;
+    SDL_Point *sdl_points;
+    sdl_points = (SDL_Point*) malloc(sizeof(SDL_Point) * points.size());
+    if(sdl_points == NULL) return;
+
+    for(int i = 0;i < points.size();i++) {
+        sdl_points[i] = {points.at(i).x, points.at(i).y};
+    }
+    SDL_RenderDrawLines(m_renderer, sdl_points, points.size());
+}
+
+void Pen::drawLines(vector<SDL_Point> &points)
+{
+    if(points.size() == 0) return;
+    SDL_RenderDrawLines(m_renderer, points.data(), points.size());
+}
+
 void Pen::clear()
 {
     SDL_SetRenderDrawColor(m_renderer, m_back_r, m_back_g, m_back_b, 255);

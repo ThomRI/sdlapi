@@ -2,6 +2,7 @@
 #define PEN_H
 
 #include <SDL2/SDL.h>
+#include "utilities.hpp"
 class Pen
 {
     public:
@@ -14,6 +15,9 @@ class Pen
 
         void drawSquare(SDL_Rect &rect);
         void drawSquare(int x, int y, int w, int h);
+
+        void drawLines(vector<vec2> &points);
+        void drawLines(vector<SDL_Point> &points);
 
         void clear();
 
