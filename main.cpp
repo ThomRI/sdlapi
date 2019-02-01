@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
         cout << "Created colliding particle at " << col_particles[j].pos << endl;
     }
 
-    cout << "Starting simulation of " << SIMULATION_STEPS << " steps for " << N << " fluid particules and " << C << " colliding particles." << endl;
+    cout << "Starting simulation of " << SIMULATION_STEPS << " steps for " << N << " fluid particles and " << C << " colliding particles." << endl;
 
     Particle *simulation_fluid[SIMULATION_STEPS]; // Simulations
     Particle *simulation_colliding[SIMULATION_STEPS];
