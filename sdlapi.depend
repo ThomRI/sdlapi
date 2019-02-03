@@ -310,13 +310,15 @@
 	<time.h>
 	<stdlib.h>
 
-1549043439 source:c:\users\thomas\documents\projets\sdlapi\main.cpp
+1549217453 source:c:\users\thomas\documents\projets\sdlapi\main.cpp
 	<iostream>
 	"Application.h"
 	"utilities.hpp"
 	<time.h>
 	<stdlib.h>
 	<math.h>
+	<string>
+	<chrono>
 
 1548852156 c:\users\thomas\documents\projets\sdlapi\include\application.h
 	<SDL2/SDL.h>

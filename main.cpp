@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string>
-#include <chrono>
+#include <windows.h>
 
 using namespace std;
 
@@ -143,8 +143,7 @@ int main(int argc, char *argv[])
     Particle col_particles[C];
 
     /* Initialising fluid particles */
-    double timestamp = chrono::duration<double>(chrono::system_clock::now().time_since_epoch()).count();
-    srand(timestamp);
+    srand(GetTickCount());
     for(int i = 0;i < N;i++) {
         int x = rand() % WORLD;
         int y = rand() % WORLD;
