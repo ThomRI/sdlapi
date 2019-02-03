@@ -33,7 +33,7 @@ using namespace std;
 #define MIN_REACTION_TIME 10
 #define MAX_REACTION_TIME 50 // Maximum amount of frames before speeds are recalculated
 
-#define SIMULATION_STEPS 2000
+#define SIMULATION_STEPS 500
 #define FPS 40 // 40 fps turn out to be 60 fps with fraps..
 
 /* Macros */
