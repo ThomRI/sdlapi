@@ -5,16 +5,17 @@
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string>
 
 using namespace std;
 
-vec2 ux(1, 0);
-vec2 uy(0, 1);
+/* Use mode : Preview or simulation mode. Define PREVIEW_MODE for preview, nothing for simulation. */
+//#define PREVIEW_MODE
 
 /* N particles of mass m */
 #define WORLD 480 // The world SIZE (grid is 0 to world-1)
 #define N 1000
-#define C 3 // Number of colliding particles
+#define C 1 // Number of colliding particles
 
 // Particles
 #define MASS_FLUID 1.0
@@ -126,6 +127,7 @@ void simulation_step(Particle *fluid_particles, Particle *colliding_particles, i
 
 int main(int argc, char *argv[])
 {
+    #ifdef PREVIEW_MODE
     cout << "Hello world!" << endl;
 
     /* Graphics */
@@ -133,6 +135,7 @@ int main(int argc, char *argv[])
     app->init();
     app->pen()->setColor(WHITE);
     app->pen()->setBackgroundColor(70, 80, 80);
+    #endif
 
 
     Particle fluid_particles[N];
@@ -147,23 +150,40 @@ int main(int argc, char *argv[])
         fluid_particles[i].pos = vec2(x, y);
         fluid_particles[i].reactionTime = reaction_time;
 
+        #ifdef PREVIEW_MODE
         app->pen()->drawSquare(x, y, SIZE_FLUID, SIZE_FLUID);
+        #endif
     }
 
     /* Initialising colliding particles */
-    for(int j = 0;j < C;j++) {
-        int x = rand() % WORLD;
-        int y = rand() % WORLD;
-        col_particles[j].pos = vec2(x, y);
+    if(argc == 1) { // No initial position provided
+        for(int j = 0;j < C;j++) {
+            int x = rand() % WORLD;
+            int y = rand() % WORLD;
+            col_particles[j].pos = vec2(x, y);
 
-        app->pen()->setColor(RED);
-        app->pen()->drawSquare(x, y, SIZE_COLLIDING, SIZE_COLLIDING);
+            #ifdef PREVIEW_MODE
+            app->pen()->setColor(RED);
+            app->pen()->drawSquare(x, y, SIZE_COLLIDING, SIZE_COLLIDING);
 
-        cout << "Created colliding particle at " << col_particles[j].pos << endl;
+            cout << "Created colliding particle at " << col_particles[j].pos << endl;
+            #endif
+        }
+    } else {
+        if(argc - 1 != 2 * C) {
+            return -1; // Must be provided an initial position for each colliding particle
+        }
+
+        for(int j = 0;j < C;j++) {
+            string x_str(argv[2*j + 1]), y_str(argv[2*j + 2]);
+            col_particles[j].pos = vec2(stod(x_str), stod(y_str));
+        }
     }
 
+    #ifdef PREVIEW_MODE
     cout << "Starting simulation of " << SIMULATION_STEPS << " steps for " << N << " fluid particles and " << C << " colliding particles." << endl;
 
+    /* ONLY FOR PREVIEW */
     Particle *simulation_fluid[SIMULATION_STEPS]; // Simulations
     Particle *simulation_colliding[SIMULATION_STEPS];
     for(int i = 0;i < SIMULATION_STEPS;i++) {
@@ -189,6 +209,7 @@ int main(int argc, char *argv[])
         simulation_colliding[0][j] = col_particles[j];
     }
 
+    /* Simulating */
     for(int n = 1;n < SIMULATION_STEPS;n++) {
         if(n % 100 == 0) {
             cout << "Simulation step : " << n << endl;
@@ -253,6 +274,18 @@ int main(int argc, char *argv[])
         }
     }
     cout << "Done previewing." << endl;
+
+    #else
+    /* Simulation mode */
+    for(int n = 1;n < SIMULATION_STEPS;n++) {
+        simulation_step(fluid_particles, col_particles, DT, n);
+    }
+
+    /* Writing final positions */
+    for(int j = 0;j < C;j++) {
+        cout << col_particles[j].pos.x << " " << col_particles[j].pos.y << endl;
+    }
+    #endif
 
     return 0;
 }
