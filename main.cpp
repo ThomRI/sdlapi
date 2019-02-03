@@ -15,7 +15,7 @@ using namespace std;
 
 /* N particles of mass m */
 #define WORLD 480 // The world SIZE (grid is 0 to world-1)
-#define N 800
+#define N 801
 #define C 1 // Number of colliding particles
 
 // Particles
