@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
             #endif
         }
     } else {
-        if(argc - 1 != 2 * C) {
+        if(argc - 2 != 2 * C) {
             return -1; // Must be provided an initial position for each colliding particle
         }
 
