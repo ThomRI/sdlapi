@@ -15,7 +15,7 @@ using namespace std;
 
 /* N particles of mass m */
 #define WORLD 480 // The world SIZE (grid is 0 to world-1)
-#define N 1000
+#define N 800
 #define C 1 // Number of colliding particles
 
 // Particles
@@ -34,7 +34,7 @@ using namespace std;
 #define MIN_REACTION_TIME 10
 #define MAX_REACTION_TIME 50 // Maximum amount of frames before speeds are recalculated
 
-#define SIMULATION_STEPS 500
+#define SIMULATION_STEPS 1000
 #define FPS 40 // 40 fps turn out to be 60 fps with fraps..
 
 /* Macros */
@@ -128,6 +128,12 @@ void simulation_step(Particle *fluid_particles, Particle *colliding_particles, i
 
 int main(int argc, char *argv[])
 {
+    /* IF SIMULATION MODE
+        Arg 0 is sdlapi.exe
+        Arg 1 is srand seed
+        next are start positions for colliding particles ("x1 y1 x2 y2...")
+    */
+
     #ifdef PREVIEW_MODE
     cout << "Hello world!" << endl;
 
