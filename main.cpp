@@ -138,12 +138,17 @@ int main(int argc, char *argv[])
     app->pen()->setBackgroundColor(70, 80, 80);
     #endif
 
-
     Particle fluid_particles[N];
     Particle col_particles[C];
 
+    #ifdef PREVIEW_MODE
+    srand(time(0));
+    #else
+    string seed(argv[1]);
+    srand(stoi(seed));
+    #endif // PREVIEW_MODE
+
     /* Initialising fluid particles */
-    srand(GetTickCount());
     for(int i = 0;i < N;i++) {
         int x = rand() % WORLD;
         int y = rand() % WORLD;
@@ -176,7 +181,7 @@ int main(int argc, char *argv[])
         }
 
         for(int j = 0;j < C;j++) {
-            string x_str(argv[2*j + 1]), y_str(argv[2*j + 2]);
+            string x_str(argv[2*j + 2]), y_str(argv[2*j + 3]);
             col_particles[j].pos = vec2(stod(x_str), stod(y_str));
         }
     }
