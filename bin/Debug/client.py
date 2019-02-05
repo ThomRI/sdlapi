@@ -8,7 +8,10 @@ Created on Tue Feb  5 19:30:36 2019
 import socket
 import struct
 import simulate
-import sys
+import ctypes
+
+''' Start message box '''
+ctypes.windll.user32.MessageBoxW(0, "Le programme est lancé, merci ! Il se fermera dès la simulation terminée.", "Simulation", 1)
 
 # Defines
 TRAME_VALUE_SIZE = 4
