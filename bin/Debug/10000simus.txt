@@ -1,0 +1,9 @@
+In the simulation :
+ N = 800
+ SIMULATION_STEPS = 1000
+
+Average position is (243.10283385171002,241.3591835844)
+Average deviation from starting point is (3.1028338517100167,1.3591835844000002)
+Average deviation in % is (0.6464237191062535,0.28316324675000004)
+Variance is (17458.78892926299,17330.48490306741)
+Average distance from starting point is 3.387470727167993
