@@ -19,7 +19,7 @@ READY = -2
 DONE = -3
 EOF = -10
 
-HOST = '127.0.0.1'
+HOST = '' # Accept from any IP
 PORT = 65423
 
 def accept_connection(socket):
@@ -77,7 +77,11 @@ def event_read(socket, socketdata):
         var_x = params[5]
         var_y = params[6]
         
-        print("Received simulation results :", average_x, average_y, average_dist, dev_percent_x, dev_percent_y, var_x, var_y)
+        print("Received simulation results from", socket.getsockname(), ":")
+        print("\t Average:", (average_x, average_y))
+        print("\t Average dist:", average_dist)
+        print("\t Deviation (%):", (dev_percent_x, dev_percent_y))
+        print("\t Variance:", (var_x, var_y))
         
 def send(socketdata, cmd, parameters):
     socketdata.outb += struct.pack('i', cmd)

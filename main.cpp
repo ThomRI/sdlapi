@@ -7,6 +7,10 @@
 #include <math.h>
 #include <string>
 
+/* CONSOLE MAY BE DISABLED
+    TO REENABLE IT : Project -> Properties -> Build Targets -> Change Type to Console Application (GUI app for no console)
+ */
+
 using namespace std;
 
 /* Use mode : Preview or simulation mode. Define PREVIEW_MODE for preview, nothing for simulation. */
